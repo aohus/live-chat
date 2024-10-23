@@ -9,7 +9,7 @@ room_repo = ChatRoomRepository()
 chat_service = ChatService(room_repo)
 
 
-@router.websocket("/ws/rooms/{room_id}")
+@router.websocket("/ws/room/{room_id}")
 async def websocket_endpoint(websocket: WebSocket, room_id: str):
     await chat_service.connect(websocket, room_id)
     try:
@@ -17,7 +17,7 @@ async def websocket_endpoint(websocket: WebSocket, room_id: str):
             data = await websocket.receive_text()  # 클라이언트로부터 메시지 수신
             # 여기서 사용자 정보를 전달받는다고 가정
             user_id, content = data.split(": ", 1)
-            message = chat_service.send_message(room_id, user_id, content)
+            await chat_service.send_message(room_id, user_id, content)
             await chat_service.broadcast(room_id, f"{user_id}: {content}")
     except WebSocketDisconnect:
-        await chat_service.disconnect(websocket, room_id)
+        chat_service.disconnect(websocket, room_id)

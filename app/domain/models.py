@@ -7,7 +7,7 @@ from typing import List
 class Message:
     user_id: str
     content: str
-    timestamp: datetime = datetime.utcnow()
+    timestamp: datetime = datetime.now()
 
 
 @dataclass

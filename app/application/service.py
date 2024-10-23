@@ -15,7 +15,7 @@ class ChatService:
             self.active_connections[room_id] = []
         self.active_connections[room_id].append(websocket)
 
-    async def disconnect(self, websocket, room_id: str):
+    def disconnect(self, websocket, room_id: str):
         """ 사용자가 연결을 끊을 때 호출 """
         self.active_connections[room_id].remove(websocket)
 
@@ -25,7 +25,7 @@ class ChatService:
             for connection in self.active_connections[room_id]:
                 await connection.send_text(message)
 
-    def send_message(self, room_id: str, user_id: str, content: str):
+    async def send_message(self, room_id: str, user_id: str, content: str):
         """ 메시지를 저장하고 브로드캐스트 준비 """
         room = self.room_repo.get_chat_room(room_id)
         if not room:
