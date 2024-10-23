@@ -25,11 +25,13 @@ class ChatService:
             for connection in self.active_connections[room_id]:
                 await connection.send_text(message)
 
-    async def send_message(self, room_id: str, user_id: str, content: str):
+    # async def send_message(self, room_id: str, user_id: str, content: str):
+    def send_message(self, room_id: str, user_id: str, content: str):
         """ 메시지를 저장하고 브로드캐스트 준비 """
         room = self.room_repo.get_chat_room(room_id)
         if not room:
-            raise ValueError("Chat room does not exist")
+            room = self.room_repo.set_chat_room(room_id)
+            # TODO: make room api 따로 하고 -> raise ValueError("Chat room does not exist")
         
         message = Message(user_id=user_id, content=content)
         room.add_message(message)

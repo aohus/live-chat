@@ -13,10 +13,13 @@ class Message:
 @dataclass
 class ChatRoom:
     room_id: str
-    participants: List[str]  # user IDs
+    participants: List[str] = None # user IDs
     messages: List[Message] = None
 
     def __post_init__(self):
+        if self.participants is None:
+            self.participants = []
+
         if self.messages is None:
             self.messages = []
 
