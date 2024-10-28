@@ -1,9 +1,10 @@
-# main.py
-from fastapi import FastAPI
-from app.api.v1.endpoints import router
+import uvicorn
 
 
-app = FastAPI()
-
-# 라우터 등록
-app.include_router(router, prefix="/api/v1")
+if __name__ == "__main__":
+    uvicorn.run(
+        app="app:app",
+        host="127.0.0.1",
+        port=8000,
+        workers=1,
+    )

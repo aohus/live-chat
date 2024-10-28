@@ -7,7 +7,7 @@ import logging
 
 logger = logging.getLogger("uvicorn")
 
-router = APIRouter()
+chat_router = APIRouter()
 
 
 html = """
@@ -64,7 +64,7 @@ html = """
 </html>
 """
 
-@router.get("/")
+@chat_router.get("/")
 async def get():
     return HTMLResponse(html)
 
@@ -74,7 +74,7 @@ token_service = TokenService()
 pubsub_service = PubSubService()
 chat_service = ChatService(token_service, pubsub_service)
 
-@router.websocket("/ws")
+@chat_router.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
 
