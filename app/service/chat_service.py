@@ -1,5 +1,4 @@
 import asyncio
-import json
 import logging
 from asyncio import create_task, sleep
 from typing import Union
@@ -9,7 +8,6 @@ from fastapi.websockets import WebSocketState
 
 from app.adapters.pubsub_service import PubSubService
 from app.adapters.token_service import TokenService
-from app.schema.message import Message
 
 PING_INTERVAL = 25  # seconds
 PING_PAYLOAD = b""
@@ -30,57 +28,53 @@ class ChatService:
         return None
 
     async def handle_client_connection(self, websocket: WebSocket, channel_id: int):
-        async def receive_messages():
-            try:
-                while True:
-                    message = await websocket.receive_text()
-                    await self._publish_message(channel_id, message)
-            except WebSocketDisconnect:
-                logging.info("websocket disconnected - recieve_task stopped")
-                raise
-
-        async def send_messages():
-            try:
-                async for pub_message in self.pubsub_service.subscribe_messages(
-                    channel_id
-                ):
-                    processed_message = await self._process_message(pub_message)
-                    if processed_message:
-                        await websocket.send_text(processed_message)
-            except asyncio.CancelledError:
-                logging.info("websocket disconnected - send_task stopped")
-
-        async def ping():
-            try:
-                while (
-                    websocket.application_state == WebSocketState.CONNECTED
-                    and websocket.client_state == WebSocketState.CONNECTED
-                ):
-                    await websocket.send_bytes(PING_PAYLOAD)
-                    await sleep(PING_INTERVAL)
-            except RuntimeError:
-                raise
-            except asyncio.CancelledError:
-                logging.info("websocket disconnected - ping_task stopped")
-
-        async def cancel_tasks(*tasks):
-            for task in tasks:
-                task.cancel()
-            await asyncio.gather(*tasks, return_exceptions=True)
-            logging.info("All tasks have been cancelled and cleaned up.")
-
-        receive_task = create_task(receive_messages())
-        send_task = create_task(send_messages())
-        ping_task = create_task(ping())
+        receive_task = create_task(self.receive_messages(websocket, channel_id))
+        send_task = create_task(self.send_messages(websocket, channel_id))
+        ping_task = create_task(self.ping(websocket))
 
         try:
             await asyncio.gather(receive_task, send_task, ping_task)
         except WebSocketDisconnect:
             logging.info("WebSocket disconnected")
-            await cancel_tasks(receive_task, send_task, ping_task)
+            await self.cancel_tasks(receive_task, send_task, ping_task)
         except Exception as e:
             logging.error(f"An error occurred: {e}")
-            await cancel_tasks(receive_task, send_task, ping_task)
+            await self.cancel_tasks(receive_task, send_task, ping_task)
+
+    async def receive_messages(self, websocket: WebSocket, channel_id: int):
+        try:
+            while True:
+                message = await websocket.receive_text()
+                await self._publish_message(channel_id, message)
+        except WebSocketDisconnect:
+            logging.info("WebSocket disconnected - receive_task stopped")
+            raise
+
+    async def send_messages(self, websocket: WebSocket, channel_id: int):
+        try:
+            async for pub_message in self.pubsub_service.subscribe_messages(channel_id):
+                processed_message = await self._process_message(pub_message)
+                if processed_message:
+                    await websocket.send_text(processed_message)
+        except asyncio.CancelledError:
+            logging.info("WebSocket disconnected - send_task stopped")
+
+    async def ping(self, websocket: WebSocket):
+        try:
+            while websocket.application_state == WebSocketState.CONNECTED:
+                await websocket.send_bytes(PING_PAYLOAD)
+                await sleep(PING_INTERVAL)
+        except RuntimeError:
+            logging.error("Runtime error during ping")
+            raise
+        except asyncio.CancelledError:
+            logging.info("WebSocket disconnected - ping_task stopped")
+
+    async def cancel_tasks(self, *tasks):
+        for task in tasks:
+            task.cancel()
+        await asyncio.gather(*tasks, return_exceptions=True)
+        logging.info("All tasks have been cancelled and cleaned up.")
 
     async def _publish_message(self, channel_id: int, message: str):
         processed_message = await self._process_message(message)
@@ -89,13 +83,5 @@ class ChatService:
 
     async def _process_message(self, message: Union[bytes, str]) -> Union[str, dict]:
         if isinstance(message, bytes):
-            processed_message = message.decode("utf-8")
-        elif isinstance(message, str):
-            processed_message = message
-        return processed_message
-        # try:
-        #     processed_message = Message.model_validate_json(message)
-        #     return processed_message
-        # except ValidationError as e:
-        #     logging.error(f"Error parsing message: {e}")
-        #     return None
+            return message.decode("utf-8")
+        return message
