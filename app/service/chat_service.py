@@ -1,3 +1,4 @@
+from typing import Optional
 import asyncio
 from asyncio import create_task, sleep
 from pydantic import ValidationError
@@ -58,7 +59,7 @@ class ChatService:
         if processed_message:
             await self.pubsub_service.publish_message(channel_id, processed_message.json())
 
-    async def _process_message(self, message: str):
+    async def _process_message(self, message: str) -> Optional[Message]:
         try:
             processed_message = Message.parse_raw(message)
             return processed_message
