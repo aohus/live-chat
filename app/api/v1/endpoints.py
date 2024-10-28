@@ -26,21 +26,38 @@ html = """
         <ul id='messages'>
         </ul>
         <script>
-            var client_id = Date.now()
+            var client_id = Date.now();
             document.querySelector("#ws-id").textContent = client_id;
             var ws = new WebSocket(`ws://localhost:8000/api/v1/ws`);
+
             ws.onmessage = function(event) {
-                var messages = document.getElementById('messages')
-                var message = document.createElement('li')
-                var content = document.createTextNode(event.data)
-                message.appendChild(content)
-                messages.appendChild(message)
+                var messages = document.getElementById('messages');
+                var messageData = JSON.parse(event.data);
+
+                var message = document.createElement('li');
+                var content = document.createTextNode(`${messageData.sender.id}: ${messageData.content}`);
+                message.appendChild(content);
+                messages.appendChild(message);
             };
+
             function sendMessage(event) {
-                var input = document.getElementById("messageText")
-                ws.send(input.value)
-                input.value = ''
-                event.preventDefault()
+                var input = document.getElementById("messageText");
+                
+                // 메시지 데이터 구조를 작성
+                var messageData = {
+                    "type": "send_message",
+                    "content": input.value,           // 입력된 메시지 내용
+                    "sender": {
+                        "id": client_id,              // 클라이언트 ID
+                    },
+                    "room_id": "room1",               // 메시지가 전송될 방의 ID
+                    "timestamp": new Date().toISOString()  // 현재 시간 (ISO 8601 형식)
+                };
+
+                // JSON 문자열로 변환하여 전송
+                ws.send(JSON.stringify(messageData));
+                input.value = '';  // 입력 필드 초기화
+                event.preventDefault();  // 기본 폼 제출 방지
             }
         </script>
     </body>
