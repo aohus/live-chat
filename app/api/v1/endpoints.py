@@ -1,8 +1,7 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends
-from fastapi.websockets import WebSocketState
-from app.application.chat_service import ChatService
-from app.infrastructure.token_service import TokenService
-from app.infrastructure.pubsub_service import PubSubService
+from fastapi import WebSocket, APIRouter
+from app.service.chat_service import ChatService
+from app.adapters.token_service import TokenService
+from app.adapters.pubsub_service import PubSubService
 from fastapi.responses import HTMLResponse
 import logging
 
@@ -29,7 +28,7 @@ html = """
         <script>
             var client_id = Date.now()
             document.querySelector("#ws-id").textContent = client_id;
-            var ws = new WebSocket(`ws://localhost:8000/api/v1/ws/room/1`);
+            var ws = new WebSocket(`ws://localhost:8000/api/v1/ws`);
             ws.onmessage = function(event) {
                 var messages = document.getElementById('messages')
                 var message = document.createElement('li')
@@ -62,8 +61,9 @@ chat_service = ChatService(token_service, pubsub_service)
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
 
-    token_headers = websocket.headers.get("X-WS-TOKEN", "").split(",")
-    channel_id = await chat_service.authenticate_token(token_headers)
+    # token_headers = websocket.headers.get("X-WS-TOKEN", "").split(",")
+    # channel_id = await chat_service.authenticate_token(token_headers)
+    channel_id = 1
 
     if channel_id is None:
         await websocket.close()

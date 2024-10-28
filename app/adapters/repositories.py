@@ -1,16 +1,8 @@
-from typing import Optional
-from app.domain.models import ChatRoom
+# db에 저장하는 query
+from app.domain.models import Message
 
-class ChatRoomRepository:
-    def __init__(self):
-        self.rooms = {}  # 간단하게 메모리 내 저장소로 대체
 
-    def get_chat_room(self, room_id: str) -> Optional[ChatRoom]:
-        return self.rooms.get(room_id)
-
-    def set_chat_room(self, room_id: str):
-        self.rooms[room_id] = ChatRoom(room_id=room_id)
-        return self.rooms.get(room_id)
-    
-    def save_chat_room(self, room: ChatRoom):
-        self.rooms[room.room_id] = room
+class MessageRepository:
+    async def save(self, message: Message) -> Message:
+        # session.add(message)
+        return message
