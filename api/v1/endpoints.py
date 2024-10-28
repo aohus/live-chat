@@ -1,5 +1,3 @@
-import logging
-
 from fastapi import APIRouter, Request, WebSocket
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
@@ -7,8 +5,6 @@ from fastapi.templating import Jinja2Templates
 from app.adapters.pubsub_service import PubSubService
 from app.adapters.token_service import TokenService
 from app.service.chat_service import ChatService
-
-logger = logging.getLogger("uvicorn")
 
 chat_router = APIRouter()
 

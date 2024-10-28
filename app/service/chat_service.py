@@ -1,10 +1,11 @@
 import asyncio
+import json
+import logging
 from asyncio import create_task, sleep
-from typing import Optional
+from typing import Union
 
 from fastapi import WebSocket, WebSocketDisconnect
 from fastapi.websockets import WebSocketState
-from pydantic import ValidationError
 
 from app.adapters.pubsub_service import PubSubService
 from app.adapters.token_service import TokenService
@@ -12,6 +13,8 @@ from app.schema.message import Message
 
 PING_INTERVAL = 25  # seconds
 PING_PAYLOAD = b""
+
+logger = logging.getLogger(__name__)
 
 
 class ChatService:
@@ -33,7 +36,8 @@ class ChatService:
                     message = await websocket.receive_text()
                     await self._publish_message(channel_id, message)
             except WebSocketDisconnect:
-                pass
+                logging.info("websocket disconnected - recieve_task stopped")
+                raise
 
         async def send_messages():
             try:
@@ -42,34 +46,56 @@ class ChatService:
                 ):
                     processed_message = await self._process_message(pub_message)
                     if processed_message:
-                        await websocket.send_text(processed_message.json())
-            except WebSocketDisconnect:
-                pass
+                        await websocket.send_text(processed_message)
+            except asyncio.CancelledError:
+                logging.info("websocket disconnected - send_task stopped")
 
-        # async def ping():
-        #     try:
-        #         while websocket.application_state == WebSocketState.CONNECTED:
-        #             await websocket.send_bytes(PING_PAYLOAD)
-        #             await sleep(PING_INTERVAL)
-        #     except WebSocketDisconnect:
-        #         pass
+        async def ping():
+            try:
+                while (
+                    websocket.application_state == WebSocketState.CONNECTED
+                    and websocket.client_state == WebSocketState.CONNECTED
+                ):
+                    await websocket.send_bytes(PING_PAYLOAD)
+                    await sleep(PING_INTERVAL)
+            except RuntimeError:
+                raise
+            except asyncio.CancelledError:
+                logging.info("websocket disconnected - ping_task stopped")
+
+        async def cancel_tasks(*tasks):
+            for task in tasks:
+                task.cancel()
+            await asyncio.gather(*tasks, return_exceptions=True)
+            logging.info("All tasks have been cancelled and cleaned up.")
 
         receive_task = create_task(receive_messages())
         send_task = create_task(send_messages())
-        # ping_task = create_task(ping())
-        await asyncio.gather(receive_task, send_task)
+        ping_task = create_task(ping())
+
+        try:
+            await asyncio.gather(receive_task, send_task, ping_task)
+        except WebSocketDisconnect:
+            logging.info("WebSocket disconnected")
+            await cancel_tasks(receive_task, send_task, ping_task)
+        except Exception as e:
+            logging.error(f"An error occurred: {e}")
+            await cancel_tasks(receive_task, send_task, ping_task)
 
     async def _publish_message(self, channel_id: int, message: str):
         processed_message = await self._process_message(message)
         if processed_message:
-            await self.pubsub_service.publish_message(
-                channel_id, processed_message.json()
-            )
+            await self.pubsub_service.publish_message(channel_id, processed_message)
 
-    async def _process_message(self, message: str) -> Optional[Message]:
-        try:
-            processed_message = Message.parse_raw(message)
-            return processed_message
-        except ValidationError as e:
-            print(f"Error parsing message: {e}")
-            return None
+    async def _process_message(self, message: Union[bytes, str]) -> Union[str, dict]:
+        if isinstance(message, bytes):
+            processed_message = message.decode("utf-8")
+        elif isinstance(message, str):
+            processed_message = message
+        return processed_message
+        # try:
+        #     processed_message = Message.model_validate_json(message)
+        #     return processed_message
+        # except ValidationError as e:
+        #     logging.error(f"Error parsing message: {e}")
+        #     return None
