@@ -1,5 +1,6 @@
 import asyncio
-from typing import Set, Dict
+from typing import Dict, Set
+
 
 class PubSubService:
     def __init__(self):

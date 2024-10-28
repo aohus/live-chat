@@ -1,15 +1,18 @@
-from typing import Optional
 import asyncio
 from asyncio import create_task, sleep
-from pydantic import ValidationError
+from typing import Optional
+
 from fastapi import WebSocket, WebSocketDisconnect
 from fastapi.websockets import WebSocketState
+from pydantic import ValidationError
+
 from app.adapters.pubsub_service import PubSubService
 from app.adapters.token_service import TokenService
 from app.schema.message import Message
 
 PING_INTERVAL = 25  # seconds
 PING_PAYLOAD = b""
+
 
 class ChatService:
     def __init__(self, token_service: TokenService, pubsub_service: PubSubService):
@@ -34,7 +37,9 @@ class ChatService:
 
         async def send_messages():
             try:
-                async for pub_message in self.pubsub_service.subscribe_messages(channel_id):
+                async for pub_message in self.pubsub_service.subscribe_messages(
+                    channel_id
+                ):
                     processed_message = await self._process_message(pub_message)
                     if processed_message:
                         await websocket.send_text(processed_message.json())
@@ -57,7 +62,9 @@ class ChatService:
     async def _publish_message(self, channel_id: int, message: str):
         processed_message = await self._process_message(message)
         if processed_message:
-            await self.pubsub_service.publish_message(channel_id, processed_message.json())
+            await self.pubsub_service.publish_message(
+                channel_id, processed_message.json()
+            )
 
     async def _process_message(self, message: str) -> Optional[Message]:
         try:
@@ -66,4 +73,3 @@ class ChatService:
         except ValidationError as e:
             print(f"Error parsing message: {e}")
             return None
-            
