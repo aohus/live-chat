@@ -29,21 +29,23 @@ handlers:
     formatter: access
     class: logging.StreamHandler
     stream: ext://sys.stdout
-  # File Handlers for saving logs to files
+  # File Handlers with rotation
   default_file:
-    formatter: file
-    class: logging.FileHandler
-    filename: uvicorn_error.log  # 로그 파일 경로 (Uvicorn 오류 및 FastAPI 로그)
-    mode: a
+    formatter: default
+    class: logging.handlers.RotatingFileHandler
+    filename: uvicorn_error.log
+    maxBytes: 10 * 1024 * 1024  # 10MB
+    backupCount: 5  # 최대 5개의 백업 파일
   access_file:
-    formatter: file
-    class: logging.FileHandler
-    filename: uvicorn_access.log  # 접근 로그 파일 경로
-    mode: a
+    formatter: access
+    class: logging.handlers.RotatingFileHandler
+    filename: uvicorn_access.log
+    maxBytes: 10 * 1024 * 1024  # 10MB
+    backupCount: 5  # 최대 5개의 백업 파일
 
 loggers:
   uvicorn.error:
-    level: INFO
+    level: ERROR
     handlers:
       - default_console
       - default_file
@@ -56,9 +58,7 @@ loggers:
     propagate: no
 
 root:
-  level: DEBUG
+  level: WARNING
   handlers:
     - default_console
     - default_file
-    - access_console
-    - access_file

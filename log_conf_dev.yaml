@@ -30,7 +30,7 @@ handlers:
     stream: ext://sys.stdout
 
 loggers:
-  uvicorn.error:
+  uvicorn.info:
     level: INFO
     handlers:
       - default
