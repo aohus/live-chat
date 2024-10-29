@@ -75,5 +75,5 @@ class PubSubService(AbstractPubSubService):
                     )
                     yield message.get("data")  # bytes
         finally:
-            # TODO: 구독이 끝난 후?
-            pass
+            await p.unsubscribe(f"channel:{channel_id}")
+            logging.info("unsubscribe: chanel=%s", channel_id)

@@ -35,7 +35,7 @@ class ChatService:
         try:
             await asyncio.gather(receive_task, send_task, ping_task)
         except WebSocketDisconnect:
-            logging.info("WebSocket disconnected")
+            logging.info("Cancel disconnected client tasks")
             await self.cancel_tasks(receive_task, send_task, ping_task)
         except Exception as e:
             logging.error(f"An error occurred: {e}")
