@@ -2,7 +2,7 @@ version: 1
 disable_existing_loggers: False
 
 formatters:
-  default:
+  console:
     # "()": uvicorn.logging.DefaultFormatter
     # format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     "()": colorlog.ColoredFormatter  # Colorlog formatter 사용
@@ -13,8 +13,6 @@ formatters:
       WARNING:  "bold_yellow"
       ERROR:    "bold_red"
       CRITICAL: "bold_purple"
-  access:
-    "()": uvicorn.logging.AccessFormatter
   file:
     format: '%(levelname)s - %(asctime)s - [%(filename)s:%(name)s:%(funcName)s] - %(message)s' 
 
@@ -22,22 +20,22 @@ formatters:
 handlers:
   # Console Handlers
   default_console:
-    formatter: default
+    formatter: console
     class: logging.StreamHandler
     stream: ext://sys.stderr
   access_console:
-    formatter: access
+    formatter: console
     class: logging.StreamHandler
     stream: ext://sys.stdout
   # File Handlers with rotation
   default_file:
-    formatter: default
+    formatter: file
     class: logging.handlers.RotatingFileHandler
     filename: uvicorn_error.log
     maxBytes: 10 * 1024 * 1024  # 10MB
     backupCount: 5  # 최대 5개의 백업 파일
   access_file:
-    formatter: access
+    formatter: file
     class: logging.handlers.RotatingFileHandler
     filename: uvicorn_access.log
     maxBytes: 10 * 1024 * 1024  # 10MB
