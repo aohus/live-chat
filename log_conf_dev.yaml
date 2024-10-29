@@ -4,9 +4,9 @@ disable_existing_loggers: False
 formatters:
   default:
     # "()": uvicorn.logging.DefaultFormatter
-    # format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     "()": colorlog.ColoredFormatter  # Colorlog formatter 사용
-    format: "%(log_color)s%(levelname)s%(reset)s %(asctime)s - %(message)s"  # 로그 색상 형식 지정
+    format: "%(log_color)s%(levelname)s%(reset)s [%(filename)s:%(funcName)s] - %(message)s"  # 로그 색상 형식 지정
     log_colors:
       DEBUG:    "bold_blue"
       INFO:     "bold_green"
@@ -14,8 +14,10 @@ formatters:
       ERROR:    "bold_red"
       CRITICAL: "bold_purple"
   access:
-    # "()": uvicorn.logging.AccessFormatter
-    format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    "()": uvicorn.logging.AccessFormatter
+  file:
+    format: '%(levelname)s - %(asctime)s - [%(filename)s:%(name)s:%(funcName)s] - %(message)s' 
+
 
 handlers:
   default:

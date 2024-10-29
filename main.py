@@ -5,7 +5,7 @@ if __name__ == "__main__":
         app="app:app",
         host="127.0.0.1",
         port=8000,
-        log_config="log_conf.yaml",
-        workers=3,
-        # reload=True,
+        log_config="log_conf_dev.yaml",
+        workers=1,
+        reload=True,
     )
