@@ -1,10 +1,15 @@
+import logging
+
 from fastapi import APIRouter, Request, WebSocket
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from app.adapters.pubsub_service import PubSubService
-from app.adapters.token_service import TokenService
-from app.service.chat_service import ChatService
+from app.adapters.token_adapter import TokenAdapter
+from app.adapters.websocket import WebSocketSession
+from app.service.message_relay import MessageRelayService, authenticate_token
+
+logger = logging.getLogger(__name__)
 
 chat_router = APIRouter()
 
@@ -18,22 +23,22 @@ async def home(request: Request):
 
 
 # 의존성 주입 설정
-token_service = TokenService()
+token_adapter = TokenAdapter()
 pubsub_service = PubSubService()
-chat_service = ChatService(token_service, pubsub_service)
+message_relay_service = MessageRelayService(pubsub_service)
 
 
 @chat_router.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
-    await websocket.accept()
+    websocket_session = await WebSocketSession.create(websocket)
 
     # token_headers = websocket.headers.get("X-WS-TOKEN", "").split(",")
-    # channel_id = await chat_service.authenticate_token(token_headers)
+    # channel_id = await authenticate_token(token_adapter, token_headers)
     channel_id = 1
 
     if channel_id is None:
-        await websocket.close()
+        await websocket_session.close()
         return
 
     # WebSocket 통신과 ping/pong 유지 관리
-    await chat_service.handle_client_connection(websocket, channel_id)
+    await message_relay_service.start(websocket_session, channel_id)

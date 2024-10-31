@@ -56,7 +56,7 @@ class InMemoryPubSubService(AbstractPubSubService):
 class PubSubService(AbstractPubSubService):
     def __init__(self):
         self.r = redis.Redis(host="localhost", port=6379)
-        logging.info("redis connected")
+        logging.info("Redis Connected Successfully")
 
     async def publish_message(self, channel_id: int, message: str):
         await self.r.publish(f"channel:{channel_id}", message)

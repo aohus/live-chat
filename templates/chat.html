@@ -22,7 +22,7 @@
                 var messageData = JSON.parse(event.data);
 
                 var message = document.createElement('li');
-                var content = document.createTextNode(`${messageData.sender.id}: ${messageData.content}`);
+                var content = document.createTextNode(`${messageData.user_id}: ${messageData.content}`);
                 message.appendChild(content);
                 messages.appendChild(message);
             };
@@ -34,10 +34,7 @@
                 var messageData = {
                     "type": "send_message",
                     "content": input.value,           // 입력된 메시지 내용
-                    "sender": {
-                        "id": client_id,              // 클라이언트 ID
-                    },
-                    "room_id": "room1",               // 메시지가 전송될 방의 ID
+                    "user_id": client_id,              // 클라이언트 ID
                     "timestamp": new Date().toISOString()  // 현재 시간 (ISO 8601 형식)
                 };
 
