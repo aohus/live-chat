@@ -11,6 +11,7 @@ fastapi = {extras = ["standard"], version = "^0.115.3"}
 websockets = "^13.1"
 redis = "^5.2.0"
 colorlog = "^6.8.2"
+pytest-asyncio = "^0.24.0"
 
 
 [build-system]
