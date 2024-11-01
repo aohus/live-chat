@@ -53,7 +53,7 @@ class MessageRelayService:
     async def receive_and_publish(self, websocket_session: WebSocket, channel_id: int):
         async for text in websocket_session.receive_text():
             message = Message(**json.loads(text))
-            if message.filter():
+            if not message.has_forbidden_words():
                 await self.pubsub_service.publish_message(
                     channel_id, json.dumps(message.to_dict())
                 )

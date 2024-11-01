@@ -1,5 +1,7 @@
 from datetime import datetime
 
+forbidden_words = {"shit"}
+
 
 class Message:
     def __init__(self, type: str, content: str, user_id: str, timestamp: datetime):
@@ -8,8 +10,13 @@ class Message:
         self.user_id = user_id
         self.timestamp = timestamp
 
-    def filter(self):
-        return True
+    def has_forbidden_words(self):
+        content = self.content.lower()
+
+        for word in forbidden_words:
+            if word in content:
+                return True
+        return False
 
     def to_dict(self):
         return {
