@@ -7,7 +7,7 @@ from fastapi import WebSocket
 
 from app.adapters.pubsub_service import PubSubService
 from app.adapters.token_adapter import TokenAdapter
-from app.domain.model import Message
+from app.domain.model import ContentFilter, Message
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +53,7 @@ class MessageRelayService:
     async def receive_and_publish(self, websocket_session: WebSocket, channel_id: int):
         async for text in websocket_session.receive_text():
             message = Message(**json.loads(text))
-            if not message.has_forbidden_words():
+            if not self.has_forbidden_words(message):
                 await self.pubsub_service.publish_message(
                     channel_id, json.dumps(message.to_dict())
                 )
@@ -61,3 +61,8 @@ class MessageRelayService:
     async def subscribe_and_send(self, websocket_session: WebSocket, channel_id: int):
         async for sub_message in self.pubsub_service.subscribe_messages(channel_id):
             await websocket_session.send_text(sub_message.decode("utf-8"))
+
+    def has_forbidden_words(self, message):
+        # TODO: PrecessPool/Queue...
+        content_filter = ContentFilter()
+        return content_filter.has_forbidden_words(message.content)
