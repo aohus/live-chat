@@ -30,9 +30,9 @@ class MessageRelayService:
         )
         send_task = create_task(self.subscribe_and_send(websocket_session, channel_id))
 
-        await self.handle_tasks([receive_task, send_task])
+        await self.run_until_first_complete([receive_task, send_task])
 
-    async def handle_tasks(self, tasks):
+    async def run_until_first_complete(self, tasks: list):
         done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
 
         await self.process_completed_tasks(done)
@@ -41,7 +41,7 @@ class MessageRelayService:
             task.cancel()
         logging.info("WebSocket connection lost. Stopping the MessageRelayService.")
 
-    async def process_completed_tasks(self, completed_tasks):
+    async def process_completed_tasks(self, completed_tasks: list):
         for task in completed_tasks:
             if task.exception() is not None:
                 logging.error(f"Task failed with exception: {task.exception()}")
