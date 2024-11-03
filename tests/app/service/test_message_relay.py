@@ -24,8 +24,8 @@ class FakePubSubService:
 
 # Fake WebSocket for testing
 class FakeWebSocket:
-    def __init__(self, messages_to_receive):
-        self.messages_to_receive = messages_to_receive
+    def __init__(self):
+        self.messages_to_receive = []
         self.sent_messages = []
 
     async def receive_text(self):
@@ -49,18 +49,7 @@ def fake_pubsub_service():
 
 @pytest.fixture
 def fake_websocket():
-    return FakeWebSocket(
-        [
-            json.dumps(
-                {
-                    "type": "chat",
-                    "content": "Hello",
-                    "user_id": "user123",
-                    "timestamp": datetime.now().isoformat(),
-                }
-            )
-        ]
-    )
+    return FakeWebSocket()
 
 
 @pytest.fixture
@@ -79,15 +68,11 @@ async def test_start_tasks_scheduled(
     await message_relay_service.start(fake_websocket, channel_id=1)
 
     # 현재 실행 중인 모든 비동기 작업 수집 / while 문은 3초 지나면 임의로 끝내도록 fake obj 생성함.
-    all_tasks = asyncio.all_tasks()
     expected_tasks = {"receive_and_publish", "subscribe_and_send"}
     scheduled_tasks = {task._coro.__name__ for task in asyncio.all_tasks()}
 
     # run_until_first_complete가 실행된 횟수 확인
     message_relay_service.run_until_first_complete.assert_awaited_once()
-
-    all_tasks = asyncio.all_tasks()
-    print([task._coro.__name__ for task in all_tasks])
 
     assert expected_tasks.issubset(scheduled_tasks), (
         f"Expected tasks {expected_tasks} are not fully scheduled in the event loop. "
@@ -122,27 +107,32 @@ async def test_run_until_first_complete_cancel_tasks(
 async def test_receive_and_publish(
     message_relay_service, fake_websocket, fake_pubsub_service
 ):
-    await message_relay_service.receive_and_publish(fake_websocket, channel_id=1)
-
-    # 메시지가 금지어 필터를 통과해 pubsub에 게시되었는지 확인
-    assert len(fake_pubsub_service.published_messages) == 1
-    print(fake_pubsub_service.published_messages[0])
-    assert fake_pubsub_service.published_messages[0][1] == json.dumps(
+    message = json.dumps(
         {
-            "type": "chat",
+            "type": "send_message",
             "content": "Hello",
             "user_id": "user123",
-            "timestamp": fake_websocket.messages_to_receive[0]["timestamp"],
+            "timestamp": datetime.now().isoformat(),
         }
     )
+    asyncio.create_task(
+        message_relay_service.receive_and_publish(fake_websocket, channel_id=1)
+    )
+
+    # 이벤트 루프를 양보: test_receive_and_publish가 event loop 차지하고 있어, receive_and_publish가 실행되지 않는 문제 있음.
+    fake_websocket.messages_to_receive.append(message)
+    await asyncio.sleep(0)
+    # 메시지가 금지어 필터를 통과해 pubsub에 게시되었는지 확인
+    assert len(fake_pubsub_service.published_messages) == 1
+    assert fake_pubsub_service.published_messages[0][1] == message
 
 
-# # Test: subscribe_and_send
-# @pytest.mark.asyncio
-# async def test_subscribe_and_send(
-#     message_relay_service, fake_websocket, fake_pubsub_service
-# ):
-#     await message_relay_service.subscribe_and_send(fake_websocket, channel_id=1)
+# Test: subscribe_and_send
+@pytest.mark.asyncio
+async def test_subscribe_and_send(
+    message_relay_service, fake_websocket, fake_pubsub_service
+):
+    await message_relay_service.subscribe_and_send(fake_websocket, channel_id=1)
 
-#     # FakeWebSocket이 pubsub의 메시지를 올바르게 수신했는지 확인
-#     assert fake_websocket.sent_messages == ["Test message from pubsub"]
+    # FakeWebSocket이 pubsub의 메시지를 올바르게 수신했는지 확인
+    assert fake_websocket.sent_messages == ["Test message from pubsub"]
