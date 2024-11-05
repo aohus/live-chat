@@ -2,10 +2,10 @@ version: '3.8'
 
 services:
   fastapi:
-    image: tiangolo/uvicorn-gunicorn-fastapi:python3.8
+    image: aohus/chatservice
     container_name: fastapi-chat-socket
     volumes:
-      - ./app:/app
+      - .chatservice/src: /opt/pysetup/src
     environment:
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
     ports:
