@@ -3,9 +3,9 @@ version: '3.8'
 services:
   fastapi:
     image: aohus/chatservice
-    container_name: fastapi-chat-socket
+    container_name: fastapi-chatservice
     volumes:
-      - .chatservice/src: /opt/pysetup/src
+      - .chatservice/src:/opt/pysetup/src
     environment:
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
     ports:
@@ -14,8 +14,15 @@ services:
     depends_on:
       - otel-collector
 
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+
   otel-collector:
-    image: otel/opentelemetry-collector:latest
+    # image: otel/opentelemetry-collector:latest
+    image: otel/opentelemetry-collector-contrib:latest
     container_name: otel-collector
     volumes:
       - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
@@ -24,6 +31,7 @@ services:
       - "4317:4317"   # OpenTelemetry gRPC 포트
       - "8888:8888"   # Diagnostics 포트
       - "9464:9464"   # Prometheus 메트릭 포트
+      - "55679:55679" # zPages 포트
 
   prometheus:
     image: prom/prometheus

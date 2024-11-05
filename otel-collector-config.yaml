@@ -3,19 +3,37 @@ receivers:
     protocols:
       grpc:
       http:
+  # fastapi/chatservice:
+  #   endpoint: "0.0.0.0:8000"
 
 exporters:
   prometheus:
-    endpoint: "0.0.0.0:9464"  # Prometheus가 메트릭을 수집할 수 있는 엔드포인트
-  logging:
-    loglevel: debug
+    endpoint: "0.0.0.0:9464"
+    namespace: default
+
+  # prometheusremotewrite:
+  #   endpoint: http://prometheus:9090/api/v1/write
+  #   tls:
+  #     insecure: true
+
+  debug:
+    verbosity: detailed
+
+extensions:
+  pprof:
+  health_check:
+  zpages:
+    endpoint: "0.0.0.0:55679" 
 
 service:
+  extensions: [pprof, health_check, zpages]
   pipelines:
     metrics:
       receivers: [otlp]
-      exporters: [prometheus, logging]
+      exporters: [prometheus, debug]
     traces:
       receivers: [otlp]
-      exporters: [logging]
-
+      exporters: [debug]
+    logs:
+      receivers: [otlp]
+      exporters: [debug]
