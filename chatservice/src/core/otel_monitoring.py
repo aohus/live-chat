@@ -1,5 +1,6 @@
 # app/monitoring.py
 import logging
+import os
 
 from opentelemetry._logs import set_logger_provider
 from opentelemetry.exporter.otlp.proto.grpc._log_exporter import OTLPLogExporter
@@ -15,6 +16,14 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.trace import get_tracer_provider, set_tracer_provider
 
+# from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
+# from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
+# from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+
+OTEL_EXPORTER_OTLP_ENDPOINT = os.environ.get(
+    "OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4317"
+)
+
 
 def setup_tracing():
     resource = Resource(attributes={"service.name": "fastapi-chat-socket"})
@@ -22,7 +31,8 @@ def setup_tracing():
 
     # Configure OTLP Exporter for tracing
     span_exporter = OTLPSpanExporter(
-        endpoint="http://otel-collector:4317", insecure=True
+        endpoint=OTEL_EXPORTER_OTLP_ENDPOINT,
+        insecure=True,
     )
     span_processor = BatchSpanProcessor(span_exporter)
     get_tracer_provider().add_span_processor(span_processor)
@@ -32,7 +42,8 @@ def setup_metrics():
     resource = Resource(attributes={"service.name": "fastapi-chat-socket"})
     # Configure OTLP Exporter for metrics
     metric_exporter = OTLPMetricExporter(
-        endpoint="http://otel-collector:4317", insecure=True
+        endpoint=OTEL_EXPORTER_OTLP_ENDPOINT,
+        insecure=True,
     )
     metric_reader = PeriodicExportingMetricReader(
         exporter=metric_exporter, export_interval_millis=10000
@@ -51,7 +62,10 @@ def setup_logging():
     logger_provider = LoggerProvider(resource=resource)
     set_logger_provider(logger_provider)
 
-    log_exporter = OTLPLogExporter(endpoint="http://otel-collector:4317", insecure=True)
+    log_exporter = OTLPLogExporter(
+        endpoint=OTEL_EXPORTER_OTLP_ENDPOINT,
+        insecure=True,
+    )
     logger_provider.add_log_record_processor(BatchLogRecordProcessor(log_exporter))
     handler = LoggingHandler(level=logging.NOTSET, logger_provider=logger_provider)
 

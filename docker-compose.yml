@@ -2,12 +2,14 @@ version: '3.8'
 
 services:
   fastapi:
-    image: aohus/chatservice
+    build: 
+      context: ./chatservice/
+      dockerfile: src/docker/Dockerfile
     container_name: fastapi-chatservice
     volumes:
       - .chatservice/src:/opt/pysetup/src
     environment:
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_EXPORTER_OTLP_ENDPOINT="otel-collector:4317"
     ports:
       - "8000:8000"
     command: python3 main.py
