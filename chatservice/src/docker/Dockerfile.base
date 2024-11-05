@@ -1,4 +1,4 @@
-FROM python:3.11 as builder-base
+FROM python:3.13 as builder-base
 ENV PYTHONUNBUFFERED=1 \
     # prevents python creating .pyc files
     PYTHONDONTWRITEBYTECODE=1 \
@@ -35,7 +35,8 @@ RUN curl -sSL https://install.python-poetry.org | python3 -
 WORKDIR $PYSETUP_PATH
 
 # copy project requirement files here to ensure they will be cached.
-COPY poetry.lock pyproject.toml ./
+COPY src/poetry.lock src/pyproject.toml ./
 
 # install runtime deps - uses $POETRY_VIRTUALENVS_IN_PROJECT internally
-RUN poetry install
+RUN poetry cache clear --all pypi
+RUN poetry install -vvv
