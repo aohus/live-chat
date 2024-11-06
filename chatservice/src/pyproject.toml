@@ -7,19 +7,16 @@ description = ""
 [tool.poetry.dependencies]
 python = "^3.13"
 fastapi = {extras = ["standard"], version = "^0.115.3"}
+uvicorn = "^0.32.0"
 websockets = "^13.1"
 redis = "^5.2.0"
 colorlog = "^6.8.2"
 pytest-asyncio = "^0.24.0"
-opentelemetry-instrumentation-fastapi = "^0.48b0"
-opentelemetry-api = "^1.27.0"
-opentelemetry-sdk = "^1.27.0"
-opentelemetry-exporter-prometheus = "^0.48b0"
-opentelemetry-instrumentation-asgi = "^0.48b0"
-opentelemetry-exporter-otlp = "^1.27.0"
-opentelemetry-instrumentation = "^0.48b0"
-uvicorn = "^0.32.0"
-
+prometheus-client = "^0.21.0"
+opentelemetry-distro = "^0.49b0"
+opentelemetry-instrumentation-fastapi = "^0.49b0"
+opentelemetry-instrumentation-logging = "^0.49b0"
+opentelemetry-exporter-otlp = "^1.28.0"
 
 [build-system]
 requires = ["poetry-core"]

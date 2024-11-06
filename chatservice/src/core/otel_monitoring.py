@@ -16,26 +16,9 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.trace import get_tracer_provider, set_tracer_provider
 
-# from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
-# from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
-# from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
-
 OTEL_EXPORTER_OTLP_ENDPOINT = os.environ.get(
     "OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4317"
 )
-
-
-def setup_tracing():
-    resource = Resource(attributes={"service.name": "fastapi-chat-socket"})
-    set_tracer_provider(TracerProvider(resource=resource))
-
-    # Configure OTLP Exporter for tracing
-    span_exporter = OTLPSpanExporter(
-        endpoint=OTEL_EXPORTER_OTLP_ENDPOINT,
-        insecure=True,
-    )
-    span_processor = BatchSpanProcessor(span_exporter)
-    get_tracer_provider().add_span_processor(span_processor)
 
 
 def setup_metrics():
@@ -50,6 +33,19 @@ def setup_metrics():
     )
     meter_provider = MeterProvider(resource=resource, metric_readers=[metric_reader])
     set_meter_provider(meter_provider)
+
+
+def setup_tracing():
+    resource = Resource(attributes={"service.name": "fastapi-chat-socket"})
+    set_tracer_provider(TracerProvider(resource=resource))
+
+    # Configure OTLP Exporter for tracing
+    span_exporter = OTLPSpanExporter(
+        endpoint=OTEL_EXPORTER_OTLP_ENDPOINT,
+        insecure=True,
+    )
+    span_processor = BatchSpanProcessor(span_exporter)
+    get_tracer_provider().add_span_processor(span_processor)
 
 
 def setup_logging():
@@ -81,6 +77,6 @@ def setup_logging():
 
 
 def setup_monitoring():
-    setup_tracing()
     setup_metrics()
+    setup_tracing()
     setup_logging()

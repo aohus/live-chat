@@ -3,13 +3,11 @@ receivers:
     protocols:
       grpc:
         endpoint: "0.0.0.0:4317"
-  # fastapi/chatservice:
-    # endpoint: "0.0.0.0:8000"
 
 exporters:
-  prometheus:
-    endpoint: "0.0.0.0:9464"
-    namespace: default
+  # prometheus:
+  #   endpoint: "0.0.0.0:9464"
+  #   namespace: default
 
   # prometheusremotewrite:
   #   endpoint: http://prometheus:9090/api/v1/write
@@ -30,7 +28,7 @@ service:
   pipelines:
     metrics:
       receivers: [otlp]
-      exporters: [prometheus, debug]
+      exporters: [debug]
     traces:
       receivers: [otlp]
       exporters: [debug]

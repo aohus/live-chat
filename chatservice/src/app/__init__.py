@@ -1,8 +1,14 @@
+import logging
+import os
+
 from api.v1 import router
 from core.otel_monitoring import setup_monitoring
+from core.prometheus import PrometheusMiddleware, metrics, setting_otlp
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from opentelemetry.instrumentation.asgi import OpenTelemetryMiddleware
+
+APP_NAME = os.environ.get("APP_NAME", "fastapi-chatservice")
+OTLP_GRPC_ENDPOINT = os.environ.get("OTLP_GRPC_ENDPOINT", "otel-collector:4317")
 
 
 def init_cors(app: FastAPI) -> None:
@@ -15,21 +21,25 @@ def init_cors(app: FastAPI) -> None:
     )
 
 
-def init_monitoring() -> None:
-    setup_monitoring()
+def init_monitoring(app: FastAPI) -> None:
+    app.add_middleware(PrometheusMiddleware, app_name=APP_NAME)
+    # setup_monitoring()
+    # Setting OpenTelemetry exporter
+    setting_otlp(app, APP_NAME, OTLP_GRPC_ENDPOINT)
 
 
-def init_middleware(app: FastAPI) -> None:
-    """
-    This library provides a ASGI middleware that can be used on any ASGI framework
-    (such as Django, Starlette, FastAPI or Quart)
-    to track requests timing through OpenTelemetry.
-    """
-    app.add_middleware(OpenTelemetryMiddleware)
+def init_log_filter() -> None:
+    class EndpointFilter(logging.Filter):
+        def filter(self, record: logging.LogRecord) -> bool:
+            return "GET /metrics" not in record.getMessage()
+
+    logging.getLogger("uvicorn.access").addFilter(EndpointFilter())
 
 
 def init_routers(app: FastAPI) -> None:
     app.include_router(router)
+    # prometheus pull endpoints
+    app.add_route("/metrics", metrics)
 
 
 def create_app() -> FastAPI:
@@ -39,9 +49,9 @@ def create_app() -> FastAPI:
         version="1.0.0",
     )
     init_routers(app=app)
-    init_monitoring()
-    init_middleware(app=app)
+    init_monitoring(app=app)
     init_cors(app=app)
+    init_log_filter()
     return app
 
 

@@ -1,19 +1,17 @@
 import logging
 
-from fastapi import APIRouter, Request, WebSocket
-from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
-
 from app.adapters.pubsub_service import PubSubService
 from app.adapters.token_adapter import TokenAdapter
 from app.adapters.websocket import WebSocketSession
 from app.service.message_relay import MessageRelayService, authenticate_token
+from fastapi import APIRouter, Request, WebSocket
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+from opentelemetry.metrics import get_meter
 
 logger = logging.getLogger(__name__)
 
 chat_router = APIRouter()
-
-
 templates = Jinja2Templates(directory="templates")
 
 
