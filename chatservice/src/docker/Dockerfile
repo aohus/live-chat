@@ -8,6 +8,7 @@ COPY --from=aohus/chatservice-base $POETRY_HOME $POETRY_HOME
 COPY --from=aohus/chatservice-base $PYSETUP_PATH $PYSETUP_PATH
 
 # quicker install as runtime deps are already installed
+RUN apt-get update -y && apt-get install iputils-ping -y
 COPY src/poetry.lock src/pyproject.toml ./
 RUN poetry install
 

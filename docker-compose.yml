@@ -8,86 +8,12 @@ services:
     container_name: fastapi-chatservice
     volumes:
       - .chatservice/src:/opt/pysetup/src
-    environment:
-      - OTEL_EXPORTER_OTLP_ENDPOINT="otel-collector:4317"
     ports:
       - "8000:8000"
     command: python3 main.py
-    depends_on:
-      - otel-collector
 
   redis:
     image: redis:7
     container_name: redis
     ports:
       - "6379:6379"
-
-  otel-collector:
-    # image: otel/opentelemetry-collector:latest
-    image: otel/opentelemetry-collector-contrib:latest
-    container_name: otel-collector
-    volumes:
-      - ./chatservice/configs/otel-collector/otel-collector-config.yaml:/etc/otel-collector-config.yaml
-    command: ["--config=/etc/otel-collector-config.yaml"]
-    ports:
-      - "4317:4317"   # OpenTelemetry gRPC 포트
-      - "8888:8888"   # Diagnostics 포트
-      - "9464:9464"   # Prometheus 메트릭 포트
-      - "55679:55679" # zPages 포트
-
-  prometheus:
-    image: prom/prometheus
-    container_name: prometheus
-    volumes:
-      - ./chatservice/configs/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-    ports:
-      - "9090:9090"
-
-  grafana:
-    image: grafana/grafana
-    container_name: grafana
-    ports:
-      - "3000:3000"
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-      - GF_SECURITY_ADMIN_USER=admin
-    depends_on:
-      - prometheus
-    volumes:
-      - ./chatservice/configs/grafana/:/etc/grafana/provisioning/datasources # data sources
-      - ./chatservice/configs/dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml # dashboard setting
-      - ./chatservice/configs/dashboards:/etc/grafana/dashboards # dashboard json files directory
-
-
-  # grafana:
-  #   image: grafana/grafana:latest
-  #   container_name: grafana
-  #   ports:
-  #     - "3000:3000"
-  #   environment:
-  #     - GF_SECURITY_ADMIN_PASSWORD=admin
-  #   depends_on:
-  #     - prometheus
-  #     - loki
-  #     - tempo
-  #   links:
-  #     - prometheus
-  #     - loki
-  #     - tempo
-
-  # loki:
-  #   image: grafana/loki:latest
-  #   container_name: loki
-  #   ports:
-  #     - "3100:3100"
-  #   command: -config.file=/etc/loki/local-config.yaml
-  #   volumes:
-  #     - ./loki-config.yaml:/etc/loki/local-config.yaml
-
-  # tempo:
-  #   image: grafana/tempo:latest
-  #   container_name: tempo
-  #   ports:
-  #     - "14268:14268"  # Jaeger 포맷 수집
-  #     - "14250:14250"  # OTLP gRPC 수집
-  #     - "4317:4317"    # OTLP HTTP 수집

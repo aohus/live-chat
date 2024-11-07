@@ -7,7 +7,6 @@ from app.service.message_relay import MessageRelayService, authenticate_token
 from fastapi import APIRouter, Request, WebSocket
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from opentelemetry.metrics import get_meter
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +30,7 @@ async def websocket_endpoint(websocket: WebSocket):
     websocket_session = await WebSocketSession.create(websocket)
 
     # token_headers = websocket.headers.get("X-WS-TOKEN", "").split(",")
+    # logging.info("token header", token_headers)
     # channel_id = await authenticate_token(token_adapter, token_headers)
     channel_id = 1
 

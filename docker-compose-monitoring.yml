@@ -1,0 +1,116 @@
+version: '3.8'
+
+x-default-logging: &logging
+  driver: "json-file"
+  options:
+    max-size: "5m"
+    max-file: "2"
+
+# docker plugin install grafana/loki-docker-driver:latest --alias loki --grant-all-permissions
+x-logging: &default-logging
+  driver: loki
+  options:
+    loki-url: 'http://localhost:3100/api/prom/push'
+    loki-pipeline-stages: |
+      - multiline:
+          firstline: '^\d{4}-\d{2}-\d{2} \d{1,2}:\d{2}:\d{2}'
+          max_wait_time: 3s
+      - regex:
+          expression: '^(?P<time>\d{4}-\d{2}-\d{2} \d{1,2}:\d{2}:\d{2},d{3}) (?P<message>(?s:.*))$$'
+
+services:
+  fastapi:
+    build: 
+      context: ./chatservice/
+      dockerfile: src/docker/Dockerfile
+    container_name: fastapi-chatservice
+    volumes:
+      - .chatservice/src:/opt/pysetup/src
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT="http://otel-collector:4317"
+    ports:
+      - "8000:8000"
+    command: python3 main.py
+    depends_on:
+      - otel-collector
+      - loki
+    logging: *logging
+
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+
+  otel-collector:
+    # image: otel/opentelemetry-collector:latest
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: otel-collector
+    volumes:
+      - ./chatservice/configs/otel-collector/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    ports:
+      - "4317:4317"   # OpenTelemetry gRPC 포트
+      - "4318:4318"   # OpenTelemetry HTTP 포트
+      - "8888:8888"   # Diagnostics 포트
+      - "9464:9464"   # Prometheus 메트릭 포트
+      - "55679:55679" # zPages 포트
+
+  prometheus:
+    image: prom/prometheus:v2.51.2
+    container_name: prometheus
+    volumes:
+      - ./chatservice/configs/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --enable-feature=exemplar-storage
+    ports:
+      - "9090:9090"
+    depends_on:
+      - loki
+    logging: *logging
+
+  grafana:
+    image: grafana/grafana:10.4.2
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+      - loki
+      - tempo
+    links:
+      - prometheus
+      - loki
+      - tempo
+    volumes:
+      - ./chatservice/configs/grafana/:/etc/grafana/provisioning/datasources # data sources
+      - ./chatservice/configs/dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml # dashboard setting
+      - ./chatservice/configs/dashboards:/etc/grafana/dashboards # dashboard json files directory
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ORG_ROLE=Editor
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+      - GF_FEATURE_TOGGLES_ENABLE=traceqlEditor
+    logging: *logging
+
+  loki:
+    image: grafana/loki:3.0.0
+    container_name: loki
+    ports:
+      - "3100:3100"
+    depends_on:
+      - otel-collector
+    # command: -config.file=/etc/loki/local-config.yaml
+    logging: *logging
+
+  tempo:
+    image: grafana/tempo:2.4.1
+    container_name: tempo
+    command: [ "--target=all", "--storage.trace.backend=local", "--storage.trace.local.path=/var/tempo", "--auth.enabled=false" ]
+    ports:
+      - "14317:4317"
+    depends_on:
+      - otel-collector
+    logging: *logging

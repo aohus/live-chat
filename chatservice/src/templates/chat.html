@@ -15,8 +15,9 @@
         <script>
             var client_id = Date.now();
             document.querySelector("#ws-id").textContent = client_id;
+        
+            const token = 1;
             var ws = new WebSocket(`ws://localhost:8000/api/v1/ws`);
-
             ws.onmessage = function(event) {
                 var messages = document.getElementById('messages');
                 var messageData = JSON.parse(event.data);
@@ -30,7 +31,7 @@
             function sendMessage(event) {
                 var input = document.getElementById("messageText");
                 
-                // 메시지 데이터 구조를 작성
+            // 메시지 데이터 구조를 작성
                 var messageData = {
                     "type": "send_message",
                     "content": input.value,           // 입력된 메시지 내용

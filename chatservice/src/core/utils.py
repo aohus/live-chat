@@ -1,6 +1,7 @@
 import time
 from typing import Tuple
 
+from grpc import Compression
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
@@ -132,11 +133,13 @@ def setting_otlp(
     trace.set_tracer_provider(tracer)
 
     tracer.add_span_processor(
-        BatchSpanProcessor(OTLPSpanExporter(endpoint=endpoint, insecure=True))
+        BatchSpanProcessor(
+            OTLPSpanExporter(
+                endpoint=endpoint, compression=Compression.Gzip, insecure=True
+            )
+        )
     )
 
     if log_correlation:
         LoggingInstrumentor().instrument(set_logging_format=True)
     FastAPIInstrumentor.instrument_app(app, tracer_provider=tracer)
-
-    # FastAPIInstrumentor.instrument_app(app)
