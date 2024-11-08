@@ -2,12 +2,12 @@ import asyncio
 import logging
 from typing import Dict, Set
 
-from app.domain.interfaces.pubsub import AbstractPubSub
+from app.domain.interfaces.pubsub import PubSub
 
 logger = logging.getLogger(__name__)
 
 
-class InMemoryPubSub(AbstractPubSub):
+class InMemoryPubSub(PubSub):
     def __init__(self):
         # 각 채널 ID별로 구독자 큐 세트를 관리
         # 단일 프로세스에서만 동작함

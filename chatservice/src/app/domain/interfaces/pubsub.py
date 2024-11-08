@@ -1,7 +1,7 @@
 import abc
 
 
-class AbstractPubSub(abc.ABC):
+class PubSub(abc.ABC):
     @abc.abstractmethod
     async def publish_message(self, channel_id: int, message: str):
         raise NotImplementedError

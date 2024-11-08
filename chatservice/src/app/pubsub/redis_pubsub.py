@@ -1,12 +1,12 @@
 import logging
 
 import redis.asyncio as redis
-from app.domain.interfaces.pubsub import AbstractPubSub
+from app.domain.interfaces.pubsub import PubSub
 
 logger = logging.getLogger(__name__)
 
 
-class RedisPubSub(AbstractPubSub):
+class RedisPubSub(PubSub):
     def __init__(self):
         self.r = redis.Redis(host="redis", port=6379)
         logging.info("Redis Client Connected Successfully")
