@@ -3,15 +3,15 @@ import json
 import logging
 from asyncio import create_task
 
-from app.domain.entities.model import ContentFilter, Message
-from app.domain.interfaces.pubsub import AbstractPubSub
+from app.entities.model import ContentFilter, Message
+from app.interfaces.pubsub import PubSub
 from fastapi import WebSocket
 
 logger = logging.getLogger(__name__)
 
 
 class MessageRelayService:
-    def __init__(self, pubsub: AbstractPubSub):
+    def __init__(self, pubsub: PubSub):
         self.pubsub = pubsub
 
     async def start(self, websocket_session: WebSocket, channel_id: int):

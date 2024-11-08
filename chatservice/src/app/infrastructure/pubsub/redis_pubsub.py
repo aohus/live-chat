@@ -1,7 +1,7 @@
 import logging
 
 import redis.asyncio as redis
-from app.domain.interfaces.pubsub import PubSub
+from app.interfaces.pubsub import PubSub
 
 logger = logging.getLogger(__name__)
 

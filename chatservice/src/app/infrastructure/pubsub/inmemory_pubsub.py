@@ -2,7 +2,7 @@ import asyncio
 import logging
 from typing import Dict, Set
 
-from app.domain.interfaces.pubsub import PubSub
+from app.interfaces.pubsub import PubSub
 
 logger = logging.getLogger(__name__)
 

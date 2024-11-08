@@ -47,7 +47,7 @@ services:
     image: otel/opentelemetry-collector-contrib:latest
     container_name: otel-collector
     volumes:
-      - ./chatservice/configs/otel-collector/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+      - ./configs/otel-collector/otel-collector-config.yaml:/etc/otel-collector-config.yaml
     command: ["--config=/etc/otel-collector-config.yaml"]
     ports:
       - "4317:4317"   # OpenTelemetry gRPC 포트
@@ -60,7 +60,7 @@ services:
     image: prom/prometheus:v2.51.2
     container_name: prometheus
     volumes:
-      - ./chatservice/configs/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./configs/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     command:
       - --config.file=/etc/prometheus/prometheus.yml
       - --enable-feature=exemplar-storage
@@ -84,9 +84,9 @@ services:
       - loki
       - tempo
     volumes:
-      - ./chatservice/configs/grafana/:/etc/grafana/provisioning/datasources # data sources
-      - ./chatservice/configs/dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml # dashboard setting
-      - ./chatservice/configs/dashboards:/etc/grafana/dashboards # dashboard json files directory
+      - ./configs/grafana/:/etc/grafana/provisioning/datasources # data sources
+      - ./configs/dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml # dashboard setting
+      - ./configs/dashboards:/etc/grafana/dashboards # dashboard json files directory
     environment:
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ORG_ROLE=Editor

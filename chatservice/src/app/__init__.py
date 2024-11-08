@@ -1,16 +1,11 @@
 import logging
-import os
 
 from api.v1 import router
+from core.config import config
 from core.otel_monitoring import setup_monitoring
 from core.utils import PrometheusMiddleware, metrics, setting_otlp
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
-APP_NAME = os.environ.get("APP_NAME", "fastapi-chatservice")
-OTEL_EXPORTER_OTLP_ENDPOINT = os.environ.get(
-    "OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4317"
-)
 
 
 def init_cors(app: FastAPI) -> None:
@@ -24,10 +19,10 @@ def init_cors(app: FastAPI) -> None:
 
 
 def init_monitoring(app: FastAPI) -> None:
-    app.add_middleware(PrometheusMiddleware, app_name=APP_NAME)
+    app.add_middleware(PrometheusMiddleware, app_name=config.APP_NAME)
     # setup_monitoring()
     # Setting OpenTelemetry exporter
-    # setting_otlp(app, APP_NAME, OTEL_EXPORTER_OTLP_ENDPOINT)
+    # setting_otlp(app, config.APP_NAME, config.OTEL_EXPORTER_OTLP_ENDPOINT)
 
 
 def init_log_filter() -> None:

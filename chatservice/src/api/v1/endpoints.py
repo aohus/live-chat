@@ -1,9 +1,9 @@
 import logging
 
-from app.domain.adapters.websocket import WebSocketSession
-from app.domain.use_cases.message_relay import MessageRelayService
-from app.domain.use_cases.token_validator import TokenValidator
-from app.pubsub.redis_pubsub import RedisPubSub
+from app.adapters.websocket import WebSocketSession
+from app.infrastructure.pubsub.redis_pubsub import RedisPubSub
+from app.use_cases.message_relay import MessageRelayService
+from app.use_cases.token_validator import TokenValidator
 from fastapi import APIRouter, Request, WebSocket
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates

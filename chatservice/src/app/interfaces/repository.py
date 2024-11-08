@@ -1,6 +1,6 @@
 import abc
 
-from app.domain.entities.model import Message
+from app.entities.model import Message
 
 
 class Repository(abc.ABC):
