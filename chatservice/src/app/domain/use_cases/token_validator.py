@@ -1,6 +1,13 @@
-class TokenAdapter:
+class TokenValidator:
     async def parse_token(self, token: str) -> int:
         return token
+
+    async def authenticate_token(self, tokens: str):
+        for token in tokens:
+            channel_id = await self.parse_token(token)
+            if channel_id:
+                return channel_id
+        return None
 
 
 # from typing import Optional
@@ -8,10 +15,17 @@ class TokenAdapter:
 # import jwt
 
 
-# class TmpTokenAdapter:
+# class TmpTokenValidator:
 #     def __init__(self, secret_key: str, algorithm: str = "HS256"):
 #         self.secret_key = secret_key
 #         self.algorithm = algorithm
+
+#     async def authenticate_token(self, tokens: str):
+#         for token in tokens:
+#             channel_id = await self.parse_token(token)
+#             if channel_id:
+#                 return channel_id
+#         return None
 
 #     async def parse_token(self, token: str) -> Optional[int]:
 #         """

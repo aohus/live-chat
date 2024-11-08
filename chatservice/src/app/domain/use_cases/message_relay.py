@@ -3,26 +3,16 @@ import json
 import logging
 from asyncio import create_task
 
+from app.domain.entities.model import ContentFilter, Message
+from app.domain.interfaces.pubsub import AbstractPubSub
 from fastapi import WebSocket
-
-from app.adapters.pubsub_service import PubSubService
-from app.adapters.token_adapter import TokenAdapter
-from app.domain.model import ContentFilter, Message
 
 logger = logging.getLogger(__name__)
 
 
-async def authenticate_token(token_adapters: TokenAdapter, tokens: str):
-    for token in tokens:
-        channel_id = await token_adapters.parse_token(token)
-        if channel_id:
-            return channel_id
-    return None
-
-
 class MessageRelayService:
-    def __init__(self, pubsub_service: PubSubService):
-        self.pubsub_service = pubsub_service
+    def __init__(self, pubsub: AbstractPubSub):
+        self.pubsub = pubsub
 
     async def start(self, websocket_session: WebSocket, channel_id: int):
         receive_task = create_task(
@@ -54,12 +44,12 @@ class MessageRelayService:
         async for text in websocket_session.receive_text():
             message = Message(**json.loads(text))
             if not self.has_forbidden_words(message):
-                await self.pubsub_service.publish_message(
+                await self.pubsub.publish_message(
                     channel_id, json.dumps(message.to_dict())
                 )
 
     async def subscribe_and_send(self, websocket_session: WebSocket, channel_id: int):
-        async for sub_message in self.pubsub_service.subscribe_messages(channel_id):
+        async for sub_message in self.pubsub.subscribe_messages(channel_id):
             await websocket_session.send_text(sub_message.decode("utf-8"))
 
     def has_forbidden_words(self, message):

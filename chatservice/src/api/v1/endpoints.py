@@ -1,9 +1,9 @@
 import logging
 
-from app.adapters.pubsub_service import PubSubService
-from app.adapters.token_adapter import TokenAdapter
-from app.adapters.websocket import WebSocketSession
-from app.service.message_relay import MessageRelayService, authenticate_token
+from app.domain.adapters.websocket import WebSocketSession
+from app.domain.use_cases.message_relay import MessageRelayService
+from app.domain.use_cases.token_validator import TokenValidator
+from app.pubsub.redis_pubsub import RedisPubSub
 from fastapi import APIRouter, Request, WebSocket
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
@@ -20,9 +20,9 @@ async def home(request: Request):
 
 
 # 의존성 주입 설정
-token_adapter = TokenAdapter()
-pubsub_service = PubSubService()
-message_relay_service = MessageRelayService(pubsub_service)
+token_validator = TokenValidator()
+redis_pubsub = RedisPubSub()
+message_relay_service = MessageRelayService(redis_pubsub)
 
 
 @chat_router.websocket("/ws")
@@ -31,7 +31,8 @@ async def websocket_endpoint(websocket: WebSocket):
 
     # token_headers = websocket.headers.get("X-WS-TOKEN", "").split(",")
     # logging.info("token header", token_headers)
-    # channel_id = await authenticate_token(token_adapter, token_headers)
+    # channel_id = await token_validator.authenticate_token(token_headers)
+
     channel_id = 1
 
     if channel_id is None:
