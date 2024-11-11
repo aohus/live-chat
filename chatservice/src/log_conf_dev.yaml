@@ -31,12 +31,12 @@ handlers:
 
 loggers:
   uvicorn.info:
-    level: INFO
+    level: DEBUG
     handlers:
       - default
     propagate: no
   uvicorn.access:
-    level: INFO
+    level: DEBUG
     handlers:
       - access
     propagate: no
