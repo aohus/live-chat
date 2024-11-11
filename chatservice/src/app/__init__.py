@@ -4,12 +4,11 @@ from api.v1 import router
 from core.config import config
 from core.middleware.prometheus_http import PrometheusHTTPMiddleware, setting_otlp
 from core.middleware.prometheus_websocket import PrometheusWebSocketMiddleware
+from core.middleware.pyinstrument import ProfilerMiddleware
 from core.middleware.views import metrics
 from core.otel_monitoring import setup_monitoring
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
-from chatservice.src.core.middleware.pyinstrument import ProfilerMiddleware
 
 
 def init_cors(app: FastAPI) -> None:
