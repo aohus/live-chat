@@ -20,14 +20,11 @@ class PrometheusWebSocketMiddleware:
             await self.app(scope, receive, send)
             return
 
-        # # receive: "websocket.receive", "websocket.connect", "websocket.disconnect"
-        # async def receive_wrapper(message: Message) -> None:
-        #     message_type = message["type"]
-        #     if message_type == "websocket.connect":
-        #         WEBSOCKET_CONNECTIONS.labels().inc()
-        #     elif message_type == "websocket.disconnect":
-        #         WEBSOCKET_CONNECTIONS.labels().dec()
-        #     await send(message)
+        async def receive_wrapper() -> Message:
+            message = await receive()
+            if message["type"] == "websocket.disconnect":
+                WEBSOCKET_CONNECTIONS.labels(app_name=self.app_name).dec()
+            return message
 
         # send: "websocket.accept", "websocket.close", "websocket.http.response.start", "websocket.send"
         async def send_wrapper(message: Message) -> None:
@@ -38,4 +35,4 @@ class PrometheusWebSocketMiddleware:
                 WEBSOCKET_CONNECTIONS.labels().dec()
             await send(message)
 
-        await self.app(scope, receive, send_wrapper)
+        await self.app(scope, receive_wrapper, send_wrapper)
