@@ -3,8 +3,8 @@ version: '3.8'
 services:
   fastapi:
     build: 
-      context: ./chatservice/
-      dockerfile: src/docker/Dockerfile
+      context: ./chatservice/src/
+      dockerfile: docker/Dockerfile
     container_name: fastapi-chatservice
     volumes:
       - ./chatservice/src:/opt/pysetup/
