@@ -1,4 +1,4 @@
-FROM aohus/chatservice-base as development
+FROM aohus/chatservice-base
 
 WORKDIR $PYSETUP_PATH
 
@@ -8,11 +8,11 @@ COPY --from=aohus/chatservice-base $PYSETUP_PATH $PYSETUP_PATH
 
 # quicker install as runtime deps are already installed
 RUN apt-get update -y && apt-get install iputils-ping -y
-COPY src/poetry.lock src/pyproject.toml ./
+COPY poetry.lock pyproject.toml ./
 RUN poetry install
 
 # ci pipeline에서 .env file 생성
 COPY .env /opt/pysetup/.env
 # will become mountpoint of our code
-COPY src/ ./
+COPY ./ /opt/pysetup/
 EXPOSE 8000
