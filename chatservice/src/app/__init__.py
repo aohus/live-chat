@@ -49,7 +49,7 @@ def create_app() -> FastAPI:
         version="1.0.0",
     )
     init_routers(app=app)
-    # init_monitoring(app=app)
+    init_monitoring(app=app)
     init_log_filter()
     init_cors(app=app)
     return app
