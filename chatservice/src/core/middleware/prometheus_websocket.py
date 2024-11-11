@@ -1,3 +1,5 @@
+import time
+
 from prometheus_client import Counter, Histogram
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
@@ -31,8 +33,6 @@ class PrometheusWebSocketMiddleware:
             message_type = message["type"]
             if message_type == "websocket.accept":
                 WEBSOCKET_CONNECTIONS.labels(app_name=self.app_name).inc()
-            elif message_type == "websocket.close":
-                WEBSOCKET_CONNECTIONS.labels().dec()
             await send(message)
 
         await self.app(scope, receive_wrapper, send_wrapper)
