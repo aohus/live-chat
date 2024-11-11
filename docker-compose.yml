@@ -6,8 +6,6 @@ services:
       context: ./chatservice/src/
       dockerfile: docker/Dockerfile
     container_name: fastapi-chatservice
-    volumes:
-      - ./chatservice/src:/opt/pysetup/
     ports:
       - "8000:8000"
     command: python3 main.py
