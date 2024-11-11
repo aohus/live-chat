@@ -33,9 +33,9 @@ class PrometheusWebSocketMiddleware:
         async def send_wrapper(message: Message) -> None:
             message_type = message["type"]
             if message_type == "websocket.accept":
-                WEBSOCKET_CONNECTIONS.labels(app_name=self.app_name)
+                WEBSOCKET_CONNECTIONS.labels(app_name=self.app_name).inc()
             elif message_type == "websocket.close":
-                WEBSOCKET_CONNECTIONS.labels()
+                WEBSOCKET_CONNECTIONS.labels().dec()
             await send(message)
 
         await self.app(scope, receive, send_wrapper)

@@ -6,7 +6,7 @@ scrape_configs:
     scrape_interval: 10s
     static_configs:
       - targets: ['172.16.153.128:9100']  # Node Exporter 실행 중인 서버의 IP와 포트
-  - job_name: 'chatservice'
+  - job_name: 'fastapi-chatservice'
     scrape_interval: 10s
     static_configs:
       - targets: ['172.16.153.128:8000']
