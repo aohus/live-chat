@@ -7,12 +7,11 @@ from starlette.types import ASGIApp, Message, Receive, Scope, Send
 PROFILING = True  # 프로파일링을 활성화하는 플래그
 
 
-class ProfilerMiddleware(BaseMiddleware):
+class ProfilerMiddleware:
     def __init__(self, app: ASGIApp, interval: float = 0.001):
-        super().__init__(app)
         self.interval = interval
 
-    async def dispatch(self, scope: Scope, receive: Receive, send: Send) -> None:
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         # 프로파일러 인스턴스 초기화 (HTTP 및 WebSocket에 대해 모두 적용)
         profiler = (
             Profiler(interval=self.interval, async_mode="enabled")
