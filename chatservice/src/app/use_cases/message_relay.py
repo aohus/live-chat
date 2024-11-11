@@ -14,11 +14,9 @@ class MessageRelayService:
     def __init__(self, pubsub: PubSub):
         self.pubsub = pubsub
 
-    async def start(self, websocket_session: WebSocket, channel_id: int):
-        receive_task = create_task(
-            self.receive_and_publish(websocket_session, channel_id)
-        )
-        send_task = create_task(self.subscribe_and_send(websocket_session, channel_id))
+    async def start(self, websocket: WebSocket, channel_id: int):
+        receive_task = create_task(self.receive_and_publish(websocket, channel_id))
+        send_task = create_task(self.subscribe_and_send(websocket, channel_id))
 
         await self.run_until_first_complete([receive_task, send_task])
 
@@ -40,17 +38,18 @@ class MessageRelayService:
                     f"Task completed successfully with result: {task.result()}"
                 )
 
-    async def receive_and_publish(self, websocket_session: WebSocket, channel_id: int):
-        async for text in websocket_session.receive_text():
+    async def receive_and_publish(self, websocket: WebSocket, channel_id: int):
+        while True:
+            text = await websocket.receive_text()
             message = Message(**json.loads(text))
             if not self.has_forbidden_words(message):
                 await self.pubsub.publish_message(
                     channel_id, json.dumps(message.to_dict())
                 )
 
-    async def subscribe_and_send(self, websocket_session: WebSocket, channel_id: int):
+    async def subscribe_and_send(self, websocket: WebSocket, channel_id: int):
         async for sub_message in self.pubsub.subscribe_messages(channel_id):
-            await websocket_session.send_text(sub_message.decode("utf-8"))
+            await websocket.send_text(sub_message.decode("utf-8"))
 
     def has_forbidden_words(self, message):
         # TODO: PrecessPool/Queue...

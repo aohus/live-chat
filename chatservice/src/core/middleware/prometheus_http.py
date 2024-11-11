@@ -9,11 +9,7 @@ from opentelemetry.instrumentation.logging import LoggingInstrumentor
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from prometheus_client import REGISTRY, Counter, Gauge, Histogram
-from prometheus_client.openmetrics.exposition import (
-    CONTENT_TYPE_LATEST,
-    generate_latest,
-)
+from prometheus_client import Counter, Gauge, Histogram
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
 from starlette.responses import Response
@@ -49,7 +45,7 @@ REQUESTS_IN_PROGRESS = Gauge(
 )
 
 
-class PrometheusMiddleware(BaseHTTPMiddleware):
+class PrometheusHTTPMiddleware(BaseHTTPMiddleware):
     def __init__(self, app: ASGIApp, app_name: str = "fastapi-app") -> None:
         super().__init__(app)
         self.app_name = app_name
@@ -113,12 +109,6 @@ class PrometheusMiddleware(BaseHTTPMiddleware):
         return request.url.path, False
 
 
-def metrics(request: Request) -> Response:
-    return Response(
-        generate_latest(REGISTRY), headers={"Content-Type": CONTENT_TYPE_LATEST}
-    )
-
-
 def setting_otlp(
     app: ASGIApp, app_name: str, endpoint: str, log_correlation: bool = True
 ) -> None:
@@ -140,6 +130,6 @@ def setting_otlp(
         )
     )
 
-    if log_correlation:
-        LoggingInstrumentor().instrument(set_logging_format=True)
-    FastAPIInstrumentor.instrument_app(app, tracer_provider=tracer)
+    # if log_correlation:
+    #     LoggingInstrumentor().instrument(set_logging_format=True)
+    # FastAPIInstrumentor.instrument_app(app, tracer_provider=tracer)
