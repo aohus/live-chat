@@ -19,24 +19,7 @@ class ProfilerMiddleware:
             else None
         )
 
-        if scope["type"] == "http":
-            # HTTP 요청 프로파일링 처리
-            request = Request(scope, receive)
-            profiling = request.query_params.get("profile", False)
-
-            if profiling and profiler:
-                profiler.start()
-                response = await self.app(scope, receive, send)
-                profiler.stop()
-
-                # 프로파일링 결과 출력
-                html_output = profiler.output_html()
-                return await send(HTMLResponse(html_output)(scope, receive, send))
-
-            # 프로파일링이 비활성화된 경우 일반 처리
-            await self.app(scope, receive, send)
-
-        elif scope["type"] == "websocket":
+        if scope["type"] == "websocket":
             # WebSocket 요청 프로파일링 처리
             if profiler:
                 profiler.start()  # 웹소켓 연결 시작 시 프로파일링 시작

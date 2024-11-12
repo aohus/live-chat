@@ -1,10 +1,10 @@
 import time
 
-from prometheus_client import Counter, Histogram
+from prometheus_client import Counter, Gauge, Histogram
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 # WebSocket Connections
-WEBSOCKET_CONNECTIONS = Counter(
+WEBSOCKET_CONNECTIONS = Gauge(
     "fastapi_websocket_connections", "Current WebSocket connections", ["app_name"]
 )
 MESSAGE_LATENCY = Histogram(
