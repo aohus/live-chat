@@ -1,3 +1,4 @@
+import asyncio
 import logging
 
 import redis.asyncio as redis
@@ -27,6 +28,8 @@ class RedisPubSub(PubSub):
                         "subscribe: channel=%s, message=%s", channel_id, message
                     )
                     yield message.get("data")  # bytes
+                else:
+                    await asyncio.sleep(0.001)  # be nice to th system
         finally:
             await p.unsubscribe(f"channel:{channel_id}")
             logging.info("unsubscribe: chanel=%s", channel_id)
