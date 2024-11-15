@@ -18,4 +18,11 @@ services:
     volumes:
       - ./configs/redis/sysctl.conf:/etc/sysctl.conf
     
-
+  redis_exporer:
+    image: oliver006/redis_exporer
+    container_name: redis_exporer
+    ports:
+      - "9121:9121"
+    environment:
+      - REDIS_ADDR=redis://redis:6379
+      
