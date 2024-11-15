@@ -22,7 +22,10 @@ class ChatTaskUser(HttpUser):
         def _receive():
             while True:
                 res = self.ws.recv()
-                data = json.loads(res)
+                try:
+                    data = json.loads(res)
+                except:
+                    print(res)
                 end_at = time.time()
                 response_time = int((end_at - data.get("timestamp")) * 1000)
                 self.environment.events.request.fire(
