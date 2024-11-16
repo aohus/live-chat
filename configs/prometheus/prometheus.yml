@@ -3,13 +3,15 @@ global:
 
 scrape_configs:
   - job_name: 'node_exporter'
-    scrape_interval: 10s
+    # scrape_interval: 10s
     static_configs:
-      - targets: ['172.16.153.128:9100']  # Node Exporter 실행 중인 서버의 IP와 포트
+      - targets: ['172.16.153.128:9100']  
   - job_name: 'fastapi-chatservice'
-    scrape_interval: 10s
     static_configs:
       - targets: ['172.16.153.128:8000']
+  - job_name: redis_exporter
+    static_configs:
+      - targets: ['172.16.153.128:9121']
 
 # remote_write:
 #   - url: 'http://otel-collector:4317/v1/metrics'  # OpenTelemetry Collector 메트릭 수신 엔드포인트
