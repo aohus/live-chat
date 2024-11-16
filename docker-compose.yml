@@ -12,6 +12,7 @@ services:
 
   redis:
     image: redis:7.4
+    container_name: redis
     command: "redis-server  --enable-debug-command yes --protected-mode no"
     ports:
       - "16385:6379"
