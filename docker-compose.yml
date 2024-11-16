@@ -17,8 +17,10 @@ services:
     ports:
       - "16385:6379"
       - "6379:6379"
+    # sysctls:
+    #   vm.overcommit_memory: "1" 
     volumes:
-      - ./configs/redis/sysctl.conf:/etc/sysctl.conf
+      - ./configs/redis/redis.conf:/usr/local/etc/redis/redis.conf
     
   redis_exporter:
     image: oliver006/redis_exporter
