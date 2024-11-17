@@ -32,4 +32,4 @@ class RedisPubSub(PubSub):
                     await asyncio.sleep(0.001)  # be nice to th system
         finally:
             await p.unsubscribe(f"channel:{channel_id}")
-            logging.info("unsubscribe: chanel=%s", channel_id)
+            logging.info("unsubscribe: channel=%s", channel_id)
