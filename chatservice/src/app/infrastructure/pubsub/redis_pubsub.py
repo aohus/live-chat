@@ -9,8 +9,10 @@ logger = logging.getLogger(__name__)
 
 class RedisPubSub(PubSub):
     def __init__(self):
-        self.r = redis.Redis(host="redis", port=6379)
-        logging.info("Redis Client Connected Successfully")
+        # Redis 클라이언트를 한 번만 생성
+        if not hasattr(self, "r"):
+            self.r = redis.Redis(host="redis", port=6379)
+            logging.info("Redis Client Connected Successfully")
 
     async def publish_message(self, channel_id: int, message: str):
         await self.r.publish(f"channel:{channel_id}", message)
