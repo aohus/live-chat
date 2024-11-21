@@ -12,7 +12,7 @@ from websocket import create_connection
 
 
 class ChatTaskUser(HttpUser):
-    wait_time = between(1, 5)
+    wait_time = between(0, 370)
 
     def on_start(self):
         self.user_id = six.text_type(uuid.uuid4())
@@ -22,10 +22,7 @@ class ChatTaskUser(HttpUser):
         def _receive():
             while True:
                 res = self.ws.recv()
-                try:
-                    data = json.loads(res)
-                except:
-                    print(res)
+                data = json.loads(res)
                 end_at = time.time()
                 response_time = int((end_at - data.get("timestamp")) * 1000)
                 self.environment.events.request.fire(
@@ -45,7 +42,7 @@ class ChatTaskUser(HttpUser):
         start_at = time.time()
         message = {
             "type": "send_message",
-            "content": f"say something {random.random}",
+            "content": f"say something {random.random()}",
             "user_id": 1,
             "timestamp": start_at,
         }
