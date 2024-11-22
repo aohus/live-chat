@@ -1,9 +1,7 @@
 import uvicorn
 from core.config import config
-from dotenv import find_dotenv, load_dotenv
 
 if __name__ == "__main__":
-    load_dotenv(find_dotenv(usecwd=True))
 
     uvicorn.run(
         app="app:app",
