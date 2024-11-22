@@ -13,7 +13,6 @@ RUN poetry install
 
 # ci pipeline에서 .env file 생성
 COPY .env /opt/pysetup/.env
-RUN export $(grep -v '^#' .env | xargs)
 
 # will become mountpoint of our code
 COPY ./ /opt/pysetup/
