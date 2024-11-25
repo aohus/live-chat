@@ -16,11 +16,12 @@ class MessageRelayService:
         self.pubsub = pubsub
         # 프로세스 풀을 생성하고 사용할 최대 프로세스 수를 설정
         self.executor = ProcessPoolExecutor(max_workers=max_workers)
+        self.event_loop = asyncio.new_event_loop()
 
     async def start(self, websocket: WebSocket, channel_id: int):
         receive_task = create_task(self.receive_and_publish(websocket, channel_id))
         send_task = create_task(
-            asyncio.new_event_loop().run_in_executor(
+            self.event_loop.run_in_executor(
                 self.executor, self.subscribe_and_send, websocket, channel_id
             )
         )
