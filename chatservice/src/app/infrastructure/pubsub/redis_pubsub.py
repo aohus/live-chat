@@ -24,7 +24,9 @@ class RedisPubSub(PubSub):
 
         try:
             while True:
-                message = await p.get_message(ignore_subscribe_messages=True)
+                message = await p.get_message(
+                    ignore_subscribe_messages=True, timeout=None
+                )
                 if message:
                     logging.info(
                         "subscribe: channel=%s, message=%s", channel_id, message
