@@ -19,7 +19,11 @@ class MessageRelayService:
 
     async def start(self, websocket: WebSocket, channel_id: int):
         receive_task = create_task(self.receive_and_publish(websocket, channel_id))
-        send_task = create_task(self.subscribe_and_send(websocket, channel_id))
+        send_task = create_task(
+            asyncio.new_event_loop().run_in_executor(
+                self.executor, self.subscribe_and_send, websocket, channel_id
+            )
+        )
 
         await self.run_until_first_complete([receive_task, send_task])
 
@@ -53,21 +57,6 @@ class MessageRelayService:
     async def subscribe_and_send(self, websocket: WebSocket, channel_id: int):
         async for sub_message in self.pubsub.subscribe_messages(channel_id):
             await websocket.send_text(sub_message.decode("utf-8"))
-
-    # async def subscribe_and_send(self, websocket: WebSocket, channel_id: int):
-    #     async for sub_message in self.pubsub.subscribe_messages(channel_id):
-    #         # send_message를 멀티프로세싱으로 병렬 실행합니다.
-    #         await asyncio.get_running_loop().run_in_executor(
-    #             self.executor, self.send_message, websocket, sub_message
-    #         )
-
-    # def send_message(self, websocket: WebSocket, message):
-    #     """멀티프로세싱에서 실행되는 메시지 전송 함수"""
-    #     try:
-    #         # 웹소켓은 프로세스 간 공유가 어려우므로 메시지만 처리하는 방식으로 설계
-    #         asyncio.run(websocket.send_text(message.decode("utf-8")))
-    #     except Exception as e:
-    #         logging.error(f"Failed to send message: {e}")
 
     def has_forbidden_words(self, message):
         # TODO: PrecessPool/Queue...
