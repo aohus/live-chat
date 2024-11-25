@@ -32,8 +32,7 @@ class RedisPubSub(PubSub):
                         "subscribe: channel=%s, message=%s", channel_id, message
                     )
                     yield message.get("data")  # bytes
-                else:
-                    await asyncio.sleep(0.1)  # be nice to th system
+                await asyncio.sleep(0)  # be nice to th system
         finally:
             await p.unsubscribe(f"channel:{channel_id}")
             logging.info("unsubscribe: channel=%s", channel_id)
