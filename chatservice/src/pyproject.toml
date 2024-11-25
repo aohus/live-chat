@@ -7,7 +7,7 @@ description = ""
 [tool.poetry.dependencies]
 python = "^3.13"
 fastapi = {extras = ["standard"], version = "^0.115.3"}
-uvicorn = "^0.32.0"
+uvicorn = {extras = ["standard"], version = "^0.32.1"}
 websockets = "^13.1"
 redis = "^5.2.0"
 colorlog = "^6.8.2"
