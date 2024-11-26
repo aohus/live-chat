@@ -1,6 +1,6 @@
 import logging
 
-from app.infrastructure.pubsub.redis_pubsub import RedisPubSub
+from app.infrastructure.pubsub.redis_pubsub import RedisPublisher, RedisSubscriber
 from app.use_cases.message_relay import MessageRelayService
 from app.use_cases.token_validator import TokenValidator
 from fastapi import APIRouter, Request, WebSocket
@@ -20,8 +20,9 @@ async def home(request: Request):
 
 # 의존성 주입 설정
 token_validator = TokenValidator()
-redis_pubsub = RedisPubSub()
-message_relay_service = MessageRelayService(redis_pubsub)
+redis_publisher = RedisPublisher()
+redis_subscriber = RedisSubscriber()
+message_relay_service = MessageRelayService(redis_publisher, redis_subscriber)
 
 
 @chat_router.websocket("/ws")
