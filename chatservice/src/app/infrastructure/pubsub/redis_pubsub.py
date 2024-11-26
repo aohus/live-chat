@@ -81,5 +81,7 @@ class RedisSubscriber(MessageSubscriber):
             message = await message_queue.get()
             message = message.decode("UTF-8")
             logging.info("subscribe: channel=%s, message=%s", channel_id, message)
-            for queue in subscribers:
-                await queue.put(message)
+            # for queue in subscribers:
+            #     await queue.put(message)
+            # await asyncio.gather(*(queue.put(message) for queue in subscribers))
+            await asyncio.gather(*(ws.send_text(message) for ws in subscribers))
