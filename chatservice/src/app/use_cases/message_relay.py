@@ -20,30 +20,32 @@ class MessageRelayService:
         self.subscriber = subscriber
 
     async def start(self, websocket: WebSocket, channel_id: int):
-        receive_task = create_task(self.receive_and_publish(websocket, channel_id))
+        # receive_task = create_task(self.receive_and_publish(websocket, channel_id))
         send_task = create_task(self.subscribe_and_send(websocket, channel_id))
+        receive_task = create_task(self.receive_and_publish(websocket, channel_id))
+        await asyncio.gather(receive_task, send_task)
 
-        await self.run_until_first_complete([receive_task, send_task])
+        # await self.run_until_first_complete([receive_task, send_task])
 
-    async def run_until_first_complete(self, tasks: list):
-        done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+    # async def run_until_first_complete(self, tasks: list):
+    #     done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
 
-        await self.process_completed_tasks(done)
+    #     await self.process_completed_tasks(done)
 
-        for task in pending:
-            task.cancel()
-        logging.info("WebSocket connection lost. Stopping the MessageRelayService.")
+    #     for task in pending:
+    #         task.cancel()
+    #     logging.info("WebSocket connection lost. Stopping the MessageRelayService.")
 
-    async def process_completed_tasks(self, completed_tasks: list):
-        for task in completed_tasks:
-            if task.exception() is not None:
-                logging.error(
-                    f"Task failed with exception: {task.exception()}, Stack: {task.get_stack()}"
-                )
-            else:
-                logging.info(
-                    f"Task completed successfully with result: {task.result()}"
-                )
+    # async def process_completed_tasks(self, completed_tasks: list):
+    #     for task in completed_tasks:
+    #         if task.exception() is not None:
+    #             logging.error(
+    #                 f"Task failed with exception: {task.exception()}, Stack: {task.get_stack()}"
+    #             )
+    #         else:
+    #             logging.info(
+    #                 f"Task completed successfully with result: {task.result()}"
+    #             )
 
     async def receive_and_publish(self, websocket: WebSocket, channel_id: int):
         while True:
