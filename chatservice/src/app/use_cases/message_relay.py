@@ -55,8 +55,8 @@ class MessageRelayService:
                 )
 
     async def subscribe_and_send(self, websocket: WebSocket, channel_id: int):
-        async for sub_message in self.subscriber.subscribe_messages(channel_id):
-            await websocket.send_text(sub_message)
+        await self.subscriber.subscribe_messages(websocket, channel_id)
+        # await websocket.send_text(sub_message)
 
     def has_forbidden_words(self, message):
         # TODO: PrecessPool/Queue...

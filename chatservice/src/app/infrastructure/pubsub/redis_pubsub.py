@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import threading
 from collections import defaultdict
 from queue import Queue
 
@@ -30,23 +29,20 @@ class RedisSubscriber(MessageSubscriber):
         self.subscribers = defaultdict(list)
         logging.info("Redis Subscriber Connected Successfully")
 
-    async def subscribe_messages(self, channel_id: int):
-        if isinstance(channel_id, list):
-            raise ValueError("channel_id must be an integer, not a list.")
-
+    async def subscribe_messages(self, websocket, channel_id: int):
         if channel_id not in self.channels:
             await self.subscribe_channel(channel_id)
-        queue = asyncio.Queue()
-        self.subscribers[channel_id].append(queue)
-        try:
-            logging.info("Start to subscribe messages from queue")
-            while True:
-                message = await queue.get()
-                if message:
-                    logging.info(message)
-                    yield message
-        finally:
-            self.subscribers.get(channel_id).remove(queue)
+        # queue = asyncio.Queue()
+        self.subscribers[channel_id].append(websocket)
+        # try:
+        #     logging.info("Start to subscribe messages from queue")
+        #     while True:
+        #         message = await queue.get()
+        #         if message:
+        #             logging.info(message)
+        #             yield message
+        # finally:
+        #     self.subscribers.get(channel_id).remove(queue)
 
     async def subscribe_channel(self, channel_id: int):
         logging.info(f"Subscribe channel:{channel_id} successfully")
