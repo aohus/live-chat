@@ -24,7 +24,7 @@ def init_cors(app: FastAPI) -> None:
 def init_monitoring(app: FastAPI) -> None:
     app.add_middleware(PrometheusHTTPMiddleware, app_name=config.APP_NAME)
     app.add_middleware(PrometheusWebSocketMiddleware, app_name=config.APP_NAME)
-    app.add_middleware(ProfilerMiddleware, interval=0.01)
+    # app.add_middleware(ProfilerMiddleware, interval=0.01)
     # setup_monitoring()
     # Setting OpenTelemetry exporter
     # setting_otlp(app, config.APP_NAME, config.OTEL_EXPORTER_OTLP_ENDPOINT)
