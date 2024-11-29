@@ -3,6 +3,7 @@ import json
 import logging
 from asyncio import create_task
 
+from app.adapters.websocket import WebSocketSession
 from app.entities.model import ContentFilter, Message
 from app.interfaces.pubsub import MessagePublisher, MessageSubscriber
 from fastapi import WebSocket
@@ -19,7 +20,7 @@ class MessageRelayService:
         self.publisher = publisher
         self.subscriber = subscriber
 
-    async def start(self, websocket: WebSocket, channel_id: int):
+    async def start(self, websocket: WebSocketSession, channel_id: int):
         # receive_task = create_task(self.receive_and_publish(websocket, channel_id))
         send_task = create_task(self.subscribe_and_send(websocket, channel_id))
         receive_task = create_task(self.receive_and_publish(websocket, channel_id))
@@ -47,7 +48,7 @@ class MessageRelayService:
     #                 f"Task completed successfully with result: {task.result()}"
     #             )
 
-    async def receive_and_publish(self, websocket: WebSocket, channel_id: int):
+    async def receive_and_publish(self, websocket: WebSocketSession, channel_id: int):
         while True:
             text = await websocket.receive_text()
             message = Message(**json.loads(text))
@@ -56,7 +57,7 @@ class MessageRelayService:
                     channel_id, json.dumps(message.to_dict())
                 )
 
-    async def subscribe_and_send(self, websocket: WebSocket, channel_id: int):
+    async def subscribe_and_send(self, websocket: WebSocketSession, channel_id: int):
         await self.subscriber.subscribe_messages(websocket, channel_id)
         # await websocket.send_text(sub_message)
 
