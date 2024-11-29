@@ -28,7 +28,7 @@ message_relay_service = MessageRelayService(redis_publisher, redis_subscriber)
 
 @chat_router.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
-    wss = await WebSocketSession(websocket).create()
+    wss = await WebSocketSession.create(websocket)
     # await websocket.accept()
 
     # token_headers = websocket.headers.get("X-WS-TOKEN", "").split(",")
