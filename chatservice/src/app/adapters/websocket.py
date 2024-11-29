@@ -27,10 +27,10 @@ class WebSocketSession:
                 text = await self.websocket.receive_text()
                 yield text
         except WebSocketDisconnect:
-            self.close()
+            await self.close()
             logging.info("WebSocket connection lost. Stopping receive_text task")
         except Exception as e:
-            self.close()
+            await self.close()
             logging.error(f"Error in receive_text: {e}")
             raise
 
@@ -39,9 +39,9 @@ class WebSocketSession:
             logging.info(text)
             await self.websocket.send_text(text)
         except WebSocketDisconnect:
-            self.close()
+            await self.close()
             logging.info("WebSocket connection lost. Stopping send_text task")
         except Exception as e:
-            self.close()
+            await self.close()
             logging.error(f"Error in send_text: {e}")
             raise
