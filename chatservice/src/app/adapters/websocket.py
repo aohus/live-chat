@@ -18,17 +18,11 @@ class WebSocketSession:
         self._websocket = websocket
 
     @classmethod
-    @asynccontextmanager
-    async def create(
-        cls, websocket: WebSocket
-    ) -> AsyncGenerator["WebSocketSession", None]:
-        try:
-            session = cls(websocket)
-            await session.accept()
-            await session._optimize_connection()
-            yield session
-        finally:
-            await session.close()
+    async def create(cls, websocket: WebSocket):
+        session = cls(websocket)
+        await session.accept()
+        await session._optimize_connection()
+        return session
 
     async def accept(self) -> None:
         await self._websocket.accept()

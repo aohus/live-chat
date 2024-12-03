@@ -28,16 +28,16 @@ message_relay_service = MessageRelayService(redis_publisher, redis_subscriber)
 
 @chat_router.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
-    async with WebSocketSession.create(websocket) as wss:
-        # token_headers = wss.headers.get("X-WS-TOKEN", "").split(",")
-        # logging.info("token header", token_headers)
-        # channel_id = await token_validator.authenticate_token(token_headers)
+    wss = await WebSocketSession.create(websocket)
+    # token_headers = wss.headers.get("X-WS-TOKEN", "").split(",")
+    # logging.info("token header", token_headers)
+    # channel_id = await token_validator.authenticate_token(token_headers)
 
-        channel_id = 1
+    channel_id = 1
 
-        if channel_id is None:
-            await wss.close()
-            return
+    if channel_id is None:
+        await wss.close()
+        return
 
-        # WebSocket 통신과 ping/pong 유지 관리
-        await message_relay_service.start(wss, channel_id)
+    # WebSocket 통신과 ping/pong 유지 관리
+    await message_relay_service.start(wss, channel_id)
