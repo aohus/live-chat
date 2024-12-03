@@ -1,6 +1,4 @@
 import logging
-import socket
-from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
 from fastapi import WebSocket, WebSocketDisconnect
@@ -29,8 +27,8 @@ class WebSocketSession:
 
     async def _optimize_connection(self) -> None:
         try:
-            socket_obj = self._websocket.transport.get_extra_info("socket")
-            socket_obj.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+            socket = self._websocket.client  # 여기에서 client를 통해 소켓에 접근합니다.
+            socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         except Exception as e:
             logger.warning(f"Could not optimize connection: {e}")
 
