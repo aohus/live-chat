@@ -19,18 +19,10 @@ class WebSocketSession:
     async def create(cls, websocket: WebSocket):
         session = cls(websocket)
         await session.accept()
-        await session._optimize_connection()
         return session
 
     async def accept(self) -> None:
         await self._websocket.accept()
-
-    async def _optimize_connection(self) -> None:
-        try:
-            socket = self._websocket.client  # 여기에서 client를 통해 소켓에 접근합니다.
-            socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-        except Exception as e:
-            logger.warning(f"Could not optimize connection: {e}")
 
     async def close(self) -> None:
         try:
