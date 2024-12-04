@@ -1,7 +1,6 @@
 import asyncio
 import logging
 from collections import defaultdict
-from queue import Queue
 
 import redis.asyncio as redis
 from app.interfaces.pubsub import MessagePublisher, MessageSubscriber
@@ -12,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 class RedisPublisher(MessagePublisher):
     def __init__(self):
-        pool = ConnectionPool(host="redis", port=6379, max_connections=10)
+        pool = ConnectionPool(host="redis", port=6379, max_connections=100)
         self.r = redis.Redis(connection_pool=pool)
         logging.info("Redis Publisher Connected Successfully")
 
@@ -32,17 +31,7 @@ class RedisSubscriber(MessageSubscriber):
     async def subscribe_messages(self, websocket, channel_id: int):
         if channel_id not in self.channels:
             await self.subscribe_channel(channel_id)
-        # queue = asyncio.Queue()
         self.subscribers[channel_id].append(websocket)
-        # try:
-        #     logging.info("Start to subscribe messages from queue")
-        #     while True:
-        #         message = await queue.get()
-        #         if message:
-        #             logging.info(message)
-        #             yield message
-        # finally:
-        #     self.subscribers.get(channel_id).remove(queue)
 
     async def subscribe_channel(self, channel_id: int):
         logging.info(f"Subscribe channel:{channel_id} successfully")
@@ -81,10 +70,9 @@ class RedisSubscriber(MessageSubscriber):
             message = await message_queue.get()
             d_message = message.decode("UTF-8")
             logging.info("subscribe: channel=%s, message=%s", channel_id, message)
-            # for queue in subscribers:
-            #     await queue.put(message)
-            # await asyncio.gather(*(queue.put(message) for queue in subscribers))
-            batch_size = 100
+
+            # 전송 작업
+            batch_size = 1000
             for i in range(0, len(subscribers), batch_size):
                 batch = [
                     ws.send_text(d_message) for ws in subscribers[i : i + batch_size]
