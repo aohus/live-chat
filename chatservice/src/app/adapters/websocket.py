@@ -48,3 +48,12 @@ class WebSocketSession:
             logger.info("WebSocket connection lost during send")
         except Exception as e:
             logger.error(f"Error sending message: {e}")
+
+    async def send_bytes(self, bytes: bytes) -> None:
+        try:
+            logger.info(f"Sending message: {bytes}")
+            await self._websocket.send_bytes(bytes)
+        except WebSocketDisconnect:
+            logger.info("WebSocket connection lost during send")
+        except Exception as e:
+            logger.error(f"Error sending message: {e}")
